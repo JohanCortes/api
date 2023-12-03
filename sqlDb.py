@@ -1,4 +1,6 @@
 import pyodbc
+import pandas as pd
+from datetime import datetime
 
 class sqlDb:
     def __init__(self, connection_string):
@@ -6,13 +8,11 @@ class sqlDb:
         self.conn = pyodbc.connect(connection_string)
 
     def consultar(self, query):
-        cursor = self.conn.cursor()
-        cursor.execute(query)
-        column_names = [column[0] for column in cursor.description]
-        resultados = []
-        for row in cursor.fetchall():
-            fila_dict = {column_names[i]: row[i] for i in range(len(column_names))}
-            resultados.append(fila_dict)
+        ti = datetime.now()
+        resultados = pd.read_sql("select * from heart where age = 49", self.conn).to_dict(orient="records")
+        #resultados = pd.read_csv("heart.csv").to_dict(orient="records")
+        tf = datetime.now()
+        print(f"Tiempo de ejecución: {(tf-ti).total_seconds()} segundos")
         return resultados
 
     def modificar(self, query, values):
