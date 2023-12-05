@@ -68,7 +68,7 @@ def obtener_fila(indice: int):
     return res
 
 @app.get("/filtrar_filas/{columna}/{valor}")
-def filtrar_filas(columnas: str, valores: str, operadores: str):
+def filtrar_filas(columnas: str, operadores: str, valores: str):
     res = db.filtrar_filas(columnas, valores, operadores)
     if not res:
         raise HTTPException(status_code=404, detail="No se encontraron resultados")
@@ -96,33 +96,33 @@ def eliminar_fila(indice: int):
     return {"msg": "Fila eliminada exitosamente"}
 
 @app.get("/scatter/")
-async def draw_graph(colx: str, coly: str, nombre: str, columnas: str = None, valores: str = None, operadores: str = None):
+async def draw_graph(colx: str, coly: str, nombre: str, columnas: str = None, operadores: str = None, valores: str = None):
     res = await dw.scatter_graph(colx, coly, nombre, columnas, valores, operadores)
     if not res:
         raise HTTPException(status_code=404, detail="No se encontraron resultados")
     return FileResponse(res)
 
 @app.get("/bar/")
-async def draw_graph(col: str, rango: float, nombre: str, columnas: str = None, valores: str = None, operadores: str = None):
+async def draw_graph(col: str, rango: float, nombre: str, columnas: str = None, operadores: str = None, valores: str = None):
     res = await dw.bar_graph(col, rango, nombre, columnas, valores, operadores)
     if not res:
         raise HTTPException(status_code=404, detail="No se encontraron resultados")
     return FileResponse(res)
 
 @app.get("/pie/")
-async def draw_graph(col: str, rango: float, nombre: str, columnas: str = None, valores: str = None, operadores: str = None):
+async def draw_graph(col: str, rango: float, nombre: str, columnas: str = None, operadores: str = None, valores: str = None):
     res = await dw.pie_graph(col, rango, nombre, columnas, valores, operadores)
     if not res:
         raise HTTPException(status_code=404, detail="No se encontraron resultados")
     return FileResponse(res)
 
 @app.post("/clasificar/")
-def clasificar(fila: FilaClas, save: bool = False):
+def clasificar(fila: FilaClas, guardar: bool = False):
     dict = fila.model_dump()
     row = pd.DataFrame([list(dict.values())], columns=['age','sex','cp','trestbps','chol','fbs','restecg','thalach','exang','oldpeak','slope','ca','thal'])
     res = tree.classify_row(row.iloc[0])
     fila = FilaNueva(**dict, target=res)
-    if save:
+    if guardar:
         print(fila.model_dump())
         db.crear_fila(fila.model_dump())
     return {"msg": "Fila clasificada exitosamente", "row": fila.model_dump()}
