@@ -4,9 +4,12 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from csvTable import csvTable
 from draw import draw
+from arbol_kd import arbol_kd
+import pandas as pd
 
 db = csvTable("heart.csv")
 dw = draw("heart.csv")
+tree = arbol_kd()
 
 app = FastAPI()
 origins = ["*"]
@@ -35,6 +38,21 @@ class FilaNueva(BaseModel):
     thal: int
     target: int
 
+class FilaClas(BaseModel):
+    age: int
+    sex: int
+    cp: int
+    trestbps: int
+    chol: int
+    fbs: int
+    restecg: int
+    thalach: int
+    exang: int
+    oldpeak: float
+    slope: int
+    ca: int
+    thal: int
+
 @app.get("/obtener_filas/")
 def obtener_filas():
     res = db.obtener_filas()
@@ -58,7 +76,6 @@ def filtrar_filas(columnas: str, valores: str, operadores: str):
 
 @app.post("/crear_fila/")
 def crear_fila(fila: FilaNueva):
-    print(fila.model_dump())
     res = db.crear_fila(fila.model_dump())
     if not res:
         raise HTTPException(status_code=403, detail="No se agregó la fila")
@@ -76,7 +93,7 @@ def eliminar_fila(indice: int):
     res = db.eliminar_fila(indice)
     if not res:
         raise HTTPException(status_code=403, detail="No se eliminó la fila")
-    return {"msg": "Fila eliminada exitosamente", "row": res}
+    return {"msg": "Fila eliminada exitosamente"}
 
 @app.get("/scatter/")
 async def draw_graph(colx: str, coly: str, nombre: str, columnas: str = None, valores: str = None, operadores: str = None):
@@ -98,3 +115,14 @@ async def draw_graph(col: str, rango: float, nombre: str, columnas: str = None, 
     if not res:
         raise HTTPException(status_code=404, detail="No se encontraron resultados")
     return FileResponse(res)
+
+@app.post("/clasificar/")
+def clasificar(fila: FilaClas, save: bool = False):
+    dict = fila.model_dump()
+    row = pd.DataFrame([list(dict.values())], columns=['age','sex','cp','trestbps','chol','fbs','restecg','thalach','exang','oldpeak','slope','ca','thal'])
+    res = tree.classify_row(row.iloc[0])
+    fila = FilaNueva(**dict, target=res)
+    if save:
+        print(fila.model_dump())
+        db.crear_fila(fila.model_dump())
+    return {"msg": "Fila clasificada exitosamente", "row": fila.model_dump()}

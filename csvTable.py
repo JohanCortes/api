@@ -33,7 +33,7 @@ class csvTable:
         return tabla.query(query).to_dict(orient="records")
 
     def crear_fila(self, datos_nuevos):
-        nueva_fila = pd.DataFrame(datos_nuevos)
+        nueva_fila = pd.DataFrame(datos_nuevos, index=[0])
         self.tabla = pd.concat([self.tabla, nueva_fila], ignore_index=True)
         self.tabla.to_csv(self.nombre_archivo, index=False)
         return self.obtener_fila(self.tabla.index[-1])
@@ -46,3 +46,4 @@ class csvTable:
     def eliminar_fila(self, indice):
         self.tabla = self.tabla.drop(index=indice)
         self.tabla.to_csv(self.nombre_archivo, index=False)
+        return True
