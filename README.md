@@ -4,7 +4,7 @@ Esta es una aplicación de Python que permite leer una tabla CSV en este caso se
 
 ## Instalación
 Clone el repositorio
-Instale las dependencias con pip install -r requirements.txt
+Instale las dependencias con `pip install -r requirements.txt`
 
 ## Uso
 - Para interactuar con el API, ejecute el servidor con el comando `uvicorn API:app --reload` y acceda a `localhost:8000/docs`.
